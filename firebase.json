@@ -1,0 +1,39 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "closetly-e3486",
+          "appId": "1:803028287569:android:93ae74a73f88f17387f870",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "closetly-e3486",
+          "configurations": {
+            "android": "1:803028287569:android:93ae74a73f88f17387f870",
+            "web": "1:803028287569:web:eb982f22de49c98e87f870",
+            "windows": "1:803028287569:web:1661db78f5f4377187f870"
+          }
+        }
+      }
+    }
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}

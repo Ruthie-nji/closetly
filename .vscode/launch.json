@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Flutter (Chrome - Port 5000)",
+        "type": "dart",
+        "request": "launch",
+        "deviceId": "chrome",
+        "args": ["--web-port=5000"]
+      }
+    ]
+  }
+  
