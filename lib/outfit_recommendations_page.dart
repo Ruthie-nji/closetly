@@ -8,9 +8,9 @@ class OutfitRecommendationsPage extends StatefulWidget {
   final List<String> wardrobePaths;
 
   const OutfitRecommendationsPage({
-    Key? key,
+    super.key,
     required this.wardrobePaths,
-  }) : super(key: key);
+  });
 
   @override
   State<OutfitRecommendationsPage> createState() => _OutfitRecommendationsPageState();

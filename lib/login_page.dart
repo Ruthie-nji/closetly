@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'home_page.dart';
 import 'sign_up_page.dart';
-import 'auth_service.dart';
+import 'auth_service.dart'; // For Google Sign-In helper
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,16 +11,19 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
+class _LoginPageState extends State<LoginPage>
+    with SingleTickerProviderStateMixin {
+  // Controllers for email and password input
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
-  bool _isLoading = false;
-  String? _error;
-  late final AnimationController _btnAnim;
+  bool _isLoading = false; // Show spinner when logging in
+  String? _error; // Display error messages
+  late final AnimationController _btnAnim; // Button press animation
 
   @override
   void initState() {
     super.initState();
+    // Set up a quick scale animation for the login button
     _btnAnim = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 100),
@@ -31,12 +34,14 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
   @override
   void dispose() {
+    // Clean up controllers
     _btnAnim.dispose();
     _emailCtrl.dispose();
     _passCtrl.dispose();
     super.dispose();
   }
 
+  // Attempt email/password login
   Future<void> _loginUser() async {
     setState(() {
       _isLoading = true;
@@ -47,16 +52,18 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         email: _emailCtrl.text.trim(),
         password: _passCtrl.text.trim(),
       );
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+      // On success, go to HomePage and replace this one
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
     } on FirebaseAuthException catch (e) {
+      // Handle common auth errors
       if (e.code == 'user-not-found') {
         setState(() => _error = 'No account found. Redirecting…');
         await Future.delayed(const Duration(seconds: 2));
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const SignUpPage()),
-        );
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const SignUpPage()));
       } else if (e.code == 'wrong-password') {
         setState(() => _error = 'Wrong password, try again.');
       } else {
@@ -67,12 +74,13 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     }
   }
 
+  // Use Google Sign-In from auth_service.dart
   Future<void> _handleGoogleSignIn() async {
     final userCred = await signInWithGoogle();
     if (userCred != null) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
     } else {
       setState(() => _error = 'Google sign-in cancelled or failed');
     }
@@ -80,12 +88,12 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    final scale = 1 - _btnAnim.value;
+    final scale = 1 - _btnAnim.value; // Button scale effect
 
     return Scaffold(
       body: Stack(
         children: [
-          // Y2K blobs
+          // Decorative top blob
           Positioned(
             top: -80,
             left: -60,
@@ -97,10 +105,17 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                   colors: [Color(0xFF6B8E23), Color(0xFF9ACD32)],
                 ),
                 borderRadius: BorderRadius.circular(120),
-                boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 12, offset: Offset(0, 4))],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 12,
+                    offset: Offset(0, 4),
+                  ),
+                ],
               ),
             ),
           ),
+          // Decorative bottom blob
           Positioned(
             bottom: -100,
             right: -80,
@@ -112,11 +127,17 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                   colors: [Color(0xFFD2691E), Color(0xFFFFA07A)],
                 ),
                 borderRadius: BorderRadius.circular(140),
-                boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 12, offset: Offset(0, 4))],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 12,
+                    offset: Offset(0, 4),
+                  ),
+                ],
               ),
             ),
           ),
-
+          // Main login form
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -148,7 +169,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                     ),
                     const SizedBox(height: 24),
 
-                    // Email
+                    // Email input field
                     _buildField(
                       controller: _emailCtrl,
                       label: 'Email',
@@ -156,20 +177,24 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                     ),
                     const SizedBox(height: 16),
 
-                    // Password
+                    // Password input field
                     _buildField(
                       controller: _passCtrl,
                       label: 'Password',
                       icon: Icons.lock_outline,
                       obscure: true,
                     ),
+                    // Show error message if something went wrong
                     if (_error != null) ...[
                       const SizedBox(height: 12),
-                      Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+                      Text(
+                        _error!,
+                        style: const TextStyle(color: Colors.redAccent),
+                      ),
                     ],
                     const SizedBox(height: 24),
 
-                    // Login button
+                    // Login button with a press animation
                     GestureDetector(
                       onTapDown: (_) => _btnAnim.forward(),
                       onTapUp: (_) {
@@ -186,27 +211,39 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                               colors: [Color(0xFF8B4513), Color(0xFFDEB887)],
                             ),
                             borderRadius: BorderRadius.circular(16),
-                            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 4))],
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 8,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
                           ),
                           alignment: Alignment.center,
-                          child: _isLoading
-                              ? const SizedBox(
-                                  height: 24,
-                                  width: 24,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2.5,
+                          child:
+                              _isLoading
+                                  ? const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.5,
+                                    ),
+                                  )
+                                  : Text(
+                                    'Log In',
+                                    style: TextStyle(
+                                      fontFamily: 'OpenSans',
+                                      fontSize: 18,
+                                      color: Colors.white,
+                                      shadows: [
+                                        Shadow(
+                                          blurRadius: 10,
+                                          color: Colors.black38,
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                )
-                              : Text(
-                                  'Log In',
-                                  style: TextStyle(
-                                    fontFamily: 'OpenSans',
-                                    fontSize: 18,
-                                    color: Colors.white,
-                                    shadows: [Shadow(blurRadius: 10, color: Colors.black38)],
-                                  ),
-                                ),
                         ),
                       ),
                     ),
@@ -216,12 +253,17 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                     ElevatedButton.icon(
                       onPressed: _isLoading ? null : _handleGoogleSignIn,
                       icon: Image.asset('assets/google_logo.png', height: 24),
-                      label: const Text('Sign in with Google', style: TextStyle(fontSize: 16)),
+                      label: const Text(
+                        'Sign in with Google',
+                        style: TextStyle(fontSize: 16),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black87,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                         elevation: 4,
                       ),
                     ),
@@ -233,16 +275,21 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       children: [
                         const Text("No account? "),
                         GestureDetector(
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const SignUpPage()),
-                          ),
+                          onTap:
+                              () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const SignUpPage(),
+                                ),
+                              ),
                           child: Text(
                             'Sign Up',
                             style: TextStyle(
                               color: const Color(0xFF8B4513),
                               fontWeight: FontWeight.bold,
                               decoration: TextDecoration.underline,
-                              shadows: [Shadow(blurRadius: 4, color: Colors.black26)],
+                              shadows: [
+                                Shadow(blurRadius: 4, color: Colors.black26),
+                              ],
                             ),
                           ),
                         ),
@@ -258,6 +305,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     );
   }
 
+  // Helper to build styled text field
   Widget _buildField({
     required TextEditingController controller,
     required String label,
@@ -270,7 +318,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       decoration: InputDecoration(
         prefixIcon: Icon(icon, color: const Color(0xFF6B8E23)),
         labelText: label,
-        labelStyle: const TextStyle(color: Color(0xFF8B4513), fontFamily: 'OpenSans'),
+        labelStyle: const TextStyle(
+          color: Color(0xFF8B4513),
+          fontFamily: 'OpenSans',
+        ),
         filled: true,
         fillColor: const Color(0xFFF5F5DC),
         border: OutlineInputBorder(
