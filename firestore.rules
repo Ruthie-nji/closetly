@@ -1,0 +1,49 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    
+    // 1) USER ITEMS WITH INLINE swapRequest
+    
+    match /users/{userId}/items/{itemId} {
+      // Read: owner or any friend
+      allow read: if request.auth != null
+                  && (
+                       request.auth.uid == userId
+                    || request.auth.uid in get(
+                         /databases/$(database)/documents
+                         /friends/$(userId)/list
+                       ).data.keys()
+                     );
+
+      // Write: owner can create/update entire item,
+      // and additionally can update JUST the swapRequest field
+      allow write: if request.auth.uid == userId
+                   // full create/update
+                   || (
+                        // only swapRequest field allowed
+                        request.auth.uid == userId
+                     && request.resource.data.keys().hasOnly(['swapRequest'])
+                      );
+    }
+
+    
+    // 2) FRIEND REQUESTS (unchanged)
+    
+    match /friendRequests/{reqId} {
+      allow create: if request.auth.uid == request.resource.data.from;
+      allow read, update:
+        if request.auth.uid in [resource.data.from, resource.data.to];
+    }
+
+    
+    // 3) FRIENDS LISTS (unchanged)
+    
+    match /friends/{userId}/list/{friendId} {
+      allow read, write:
+        if request.auth.uid in [userId, friendId];
+    }
+
+    // (any other collections you have...)
+  }
+}
