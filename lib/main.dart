@@ -4,23 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-// ✨ THIS import is required for web (and desktop) builds:
-import 'firebase_options.dart';
-
+import 'firebase_options.dart'; // ← Only once
 import 'login_page.dart';
 import 'home_page.dart';
 import 'pages/my_wardrobe_page.dart';
 import 'pages/friend_wardrobe_page.dart';
-import 'outfit_recommendations_page.dart';
+import 'outfit_recommendations_page.dart'; // ← No more constructor args
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // 🔑 You MUST pass in your generated FirebaseOptions here:
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -48,6 +41,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
 
+      // Show login/home based on auth state
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (ctx, snapshot) {
@@ -61,18 +55,18 @@ class MyApp extends StatelessWidget {
               body: Center(child: Text('Auth error:\n${snapshot.error}')),
             );
           }
-          if (!snapshot.hasData) {
-            return const LoginPage();
-          }
-          return const HomePage();
+          return snapshot.hasData ? const HomePage() : const LoginPage();
         },
       ),
 
+      // Static named routes
       routes: {
         '/login': (_) => const LoginPage(),
-        '/home':  (_) => const HomePage(),
+        '/home': (_) => const HomePage(),
         '/my-wardrobe': (_) => MyWardrobePage(),
       },
+
+      // Dynamic routes
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case '/friend-wardrobe':
@@ -80,11 +74,13 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(
               builder: (_) => FriendWardrobePage(friendUid: friendId),
             );
+
           case '/outfit-recommendations':
-            final paths = settings.arguments as List<String>;
+            // We no longer take wardrobePaths through constructor
             return MaterialPageRoute(
-              builder: (_) => OutfitRecommendationsPage(wardrobePaths: paths),
+              builder: (_) => const OutfitRecommendationsPage(),
             );
+
           default:
             return null;
         }

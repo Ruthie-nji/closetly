@@ -73,4 +73,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'closetly-e3486.firebasestorage.app',
     measurementId: 'G-1MWMC8766M',
   );
+
 }

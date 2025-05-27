@@ -1,4 +1,3 @@
-
 // lib/home_page.dart
 import 'package:flutter/material.dart';
 import 'dart:io';
@@ -19,7 +18,11 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedCategory = 'All';
   final List<String> _categories = [
-    'All', 'Tops', 'Bottoms', 'Shoes', 'Accessories'
+    'All',
+    'Tops',
+    'Bottoms',
+    'Shoes',
+    'Accessories',
   ];
 
   Future<void> _addClothingItem() async {
@@ -37,14 +40,16 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _clothes.where((item) {
-      final matchesCategory =
-          _selectedCategory == 'All' || item['category'] == _selectedCategory;
-      final query = _searchController.text.trim().toLowerCase();
-      final matchesSearch =
-          query.isEmpty || item['category'].toLowerCase().contains(query);
-      return matchesCategory && matchesSearch;
-    }).toList();
+    final filtered =
+        _clothes.where((item) {
+          final matchesCategory =
+              _selectedCategory == 'All' ||
+              item['category'] == _selectedCategory;
+          final query = _searchController.text.trim().toLowerCase();
+          final matchesSearch =
+              query.isEmpty || item['category'].toLowerCase().contains(query);
+          return matchesCategory && matchesSearch;
+        }).toList();
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -71,16 +76,11 @@ class _HomePageState extends State<HomePage> {
             icon: const Icon(Icons.checkroom_rounded),
             onPressed: () {
               // Navigate to AI Outfit Recommendations
-              final wardrobePaths = _clothes
-                  .map((c) => (c['file'] as File).path)
-                  .toList();
+              final wardrobePaths =
+                  _clothes.map((c) => (c['file'] as File).path).toList();
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => OutfitRecommendationsPage(
-                    wardrobePaths: wardrobePaths,
-                  ),
-                ),
+                MaterialPageRoute(builder: (_) => OutfitRecommendationsPage()),
               );
             },
             color: Colors.white,
@@ -125,30 +125,33 @@ class _HomePageState extends State<HomePage> {
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: _categories.map((cat) {
-                  final selected = cat == _selectedCategory;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: ChoiceChip(
-                      label: Text(
-                        cat,
-                        style: TextStyle(
-                          color: selected ? Colors.white : Colors.black,
+                children:
+                    _categories.map((cat) {
+                      final selected = cat == _selectedCategory;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: ChoiceChip(
+                          label: Text(
+                            cat,
+                            style: TextStyle(
+                              color: selected ? Colors.white : Colors.black,
+                            ),
+                          ),
+                          selected: selected,
+                          onSelected:
+                              (_) => setState(() {
+                                _selectedCategory = cat;
+                              }),
+                          backgroundColor: const Color(0xFFFFB3C1),
+                          selectedColor: const Color(0xFFCFFF04),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          elevation: 4,
+                          shadowColor: Colors.black26,
                         ),
-                      ),
-                      selected: selected,
-                      onSelected: (_) => setState(() {
-                        _selectedCategory = cat;
-                      }),
-                      backgroundColor: const Color(0xFFFFB3C1),
-                      selectedColor: const Color(0xFFCFFF04),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
-                      elevation: 4,
-                      shadowColor: Colors.black26,
-                    ),
-                  );
-                }).toList(),
+                      );
+                    }).toList(),
               ),
             ),
             const SizedBox(height: 12),
@@ -157,8 +160,7 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: GridView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
@@ -167,7 +169,9 @@ class _HomePageState extends State<HomePage> {
                 itemCount: filtered.length,
                 itemBuilder: (_, i) {
                   return GestureDetector(
-                    onTap: () {/* TODO: view full-size */},
+                    onTap: () {
+                      /* TODO: view full-size */
+                    },
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
@@ -180,7 +184,7 @@ class _HomePageState extends State<HomePage> {
                             color: Colors.black26,
                             blurRadius: 6,
                             offset: Offset(0, 4),
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -200,13 +204,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
