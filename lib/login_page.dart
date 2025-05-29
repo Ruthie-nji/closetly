@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'home_page.dart';
 import 'sign_up_page.dart';
-import 'auth_service.dart'; // For Google Sign-In helper
+import 'services/auth_service.dart'; // Fixed import path
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -76,13 +76,19 @@ class _LoginPageState extends State<LoginPage>
 
   // Use Google Sign-In from auth_service.dart
   Future<void> _handleGoogleSignIn() async {
-    final userCred = await signInWithGoogle();
-    if (userCred != null) {
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
-    } else {
-      setState(() => _error = 'Google sign-in cancelled or failed');
+    try {
+      // Create an instance of AuthService instead of calling static method
+      final authService = AuthService();
+      final userCred = await authService.signInWithGoogle();
+      if (userCred != null) {
+        Navigator.of(
+          context,
+        ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
+      } else {
+        setState(() => _error = 'Google sign-in cancelled or failed');
+      }
+    } catch (e) {
+      setState(() => _error = 'Google sign-in error: $e');
     }
   }
 

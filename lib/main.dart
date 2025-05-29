@@ -1,19 +1,24 @@
 // lib/main.dart
 
+// This is where our app starts - like the front door of our house
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import 'firebase_options.dart'; // ← Only once
+import 'firebase_options.dart';
 import 'login_page.dart';
 import 'home_page.dart';
-import 'pages/my_wardrobe_page.dart';
-import 'pages/friend_wardrobe_page.dart';
-import 'outfit_recommendations_page.dart'; // ← No more constructor args
+import 'outfit_recommendations_page.dart';
 
+// The first thing that runs when someone opens our app
 void main() async {
+  // Make sure Flutter is ready to work
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Connect to Firebase (our backend service)
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Start the app
   runApp(const MyApp());
 }
 
@@ -24,6 +29,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Closetly',
+
+      // How our app looks and feels
       theme: ThemeData(
         primarySwatch: Colors.green,
         scaffoldBackgroundColor: Colors.transparent,
@@ -41,48 +48,45 @@ class MyApp extends StatelessWidget {
         ),
       ),
 
-      // Show login/home based on auth state
+      // Decide what screen to show first
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (ctx, snapshot) {
+          // Still figuring out if user is logged in
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
           }
+
+          // Something went wrong with login check
           if (snapshot.hasError) {
             return Scaffold(
               body: Center(child: Text('Auth error:\n${snapshot.error}')),
             );
           }
-          return snapshot.hasData ? const HomePage() : const LoginPage();
+
+          // Show home page if logged in, login page if not
+          final user = snapshot.data;
+          return user != null ? const HomePage() : const LoginPage();
         },
       ),
 
-      // Static named routes
+      // Simple page routes (like /login, /home)
       routes: {
         '/login': (_) => const LoginPage(),
         '/home': (_) => const HomePage(),
-        '/my-wardrobe': (_) => MyWardrobePage(),
       },
 
-      // Dynamic routes
+      // More complex routes that might need extra info
       onGenerateRoute: (settings) {
         switch (settings.name) {
-          case '/friend-wardrobe':
-            final friendId = settings.arguments as String;
-            return MaterialPageRoute(
-              builder: (_) => FriendWardrobePage(friendUid: friendId),
-            );
-
           case '/outfit-recommendations':
-            // We no longer take wardrobePaths through constructor
             return MaterialPageRoute(
               builder: (_) => const OutfitRecommendationsPage(),
             );
-
           default:
-            return null;
+            return null; // Page not found
         }
       },
     );

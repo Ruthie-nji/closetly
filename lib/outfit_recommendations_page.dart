@@ -17,42 +17,76 @@ class OutfitRecommendationsPage extends StatefulWidget {
 class _OutfitRecommendationsPageState extends State<OutfitRecommendationsPage> {
   final ImagePicker _picker = ImagePicker();
 
-  // Loading state
+  // Tracks whether we're waiting for uploads or AI responses
   bool _isLoading = false;
 
-  // Raw uploaded URLs (for debugging or further logic)
+  // Raw URLs for uploaded images (can be used for debugging)
   List<String> _uploadedImageUrls = [];
 
-  // Recommended outfit suggestions
+  // Our list of outfit suggestions to display
   List<Outfit> _outfits = [];
 
-  // (Optional) You can expose this via a dropdown later
-  String _selectedCategory = 'All';
+  // Example category selector (not used in dummy mode)
+  final String _selectedCategory = 'All';
 
-  /// Pick one or more images from gallery, upload them,
-  /// then fetch outfit recommendations.
+  /// This method drives the user flow:
+  /// 1. Pick multiple images
+  /// 2. Upload them to Firebase Storage
+  /// 3. Call our AI service for recommendations
+  /// 4. Display results in a grid
   Future<void> _pickAndFetch() async {
-    final List<XFile>? pics = await _picker.pickMultiImage();
-    if (pics == null || pics.isEmpty) return;
+    // Let user pick multiple images from gallery
+    final List<XFile> pics = await _picker.pickMultiImage();
+    if (pics.isEmpty) return;
 
+    // Show loading spinner
     setState(() {
       _isLoading = true;
       _uploadedImageUrls = [];
       _outfits = [];
     });
 
+    // ----------------- DUMMY DATA MODE -----------------
+    // Right now our AI backend is returning an empty list,
+    // i threw  in some pretend outfits until that
+    // gets ramped up. This also proves our UI works!
+    await Future.delayed(const Duration(milliseconds: 700));
+    final dummy = <Outfit>[
+      Outfit(
+        title: 'Casual Denim Look',
+        imageUrls: ['https://via.placeholder.com/300x400'],
+      ),
+      Outfit(
+        title: 'Sporty Athleisure',
+        imageUrls: ['https://via.placeholder.com/300x400'],
+      ),
+    ];
+    setState(() {
+      _outfits = dummy;
+      _isLoading = false;
+    });
+    return; // Stop here while in dummy mode
+    // ---------------------------------------------------
+
+    // When your AI service is ready, comment out the dummy block
+    // above and uncomment the real flow below:
+
+    /*
     try {
-      // Upload and collect download URLs
+      // Step 1: upload images and collect URLs
       final List<String> urls = await StorageService.uploadWardrobe(pics);
       setState(() => _uploadedImageUrls = urls);
 
-      // Fetch outfit recommendations from your AI backend
+      // Step 2: call AI backend
       final List<Outfit> recs = await AiService.getOutfits(
         imageUrls: urls,
         category: _selectedCategory,
       );
 
-      setState(() => _outfits = recs);
+      // Step 3: show suggestions
+      setState(() {
+        _outfits = recs;
+      });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error fetching recommendations: $e')),
@@ -60,6 +94,7 @@ class _OutfitRecommendationsPageState extends State<OutfitRecommendationsPage> {
     } finally {
       setState(() => _isLoading = false);
     }
+    */
   }
 
   @override
@@ -70,7 +105,7 @@ class _OutfitRecommendationsPageState extends State<OutfitRecommendationsPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Upload button
+            // Button to start the flow
             ElevatedButton.icon(
               icon: const Icon(Icons.photo_library),
               label: const Text('Pick & Upload Photos'),
@@ -79,10 +114,10 @@ class _OutfitRecommendationsPageState extends State<OutfitRecommendationsPage> {
 
             const SizedBox(height: 16),
 
-            // Loading spinner
+            // Show a spinner while loading
             if (_isLoading) const Center(child: CircularProgressIndicator()),
 
-            // Recommendations grid
+            // Once we have outfits, show them in a grid
             if (!_isLoading && _outfits.isNotEmpty)
               Expanded(
                 child: GridView.builder(
@@ -100,7 +135,7 @@ class _OutfitRecommendationsPageState extends State<OutfitRecommendationsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // show the first image of this suggested outfit
+                          // Show the first image
                           if (outfit.imageUrls.isNotEmpty)
                             Expanded(
                               child: Image.network(
@@ -109,7 +144,7 @@ class _OutfitRecommendationsPageState extends State<OutfitRecommendationsPage> {
                               ),
                             ),
 
-                          // show the outfit title
+                          // And the title below
                           Padding(
                             padding: const EdgeInsets.all(8),
                             child: Text(
@@ -125,12 +160,12 @@ class _OutfitRecommendationsPageState extends State<OutfitRecommendationsPage> {
                 ),
               ),
 
-            // Placeholder hint when nothing yet
+            // If no outfits yet (and not loading), show a friendly hint
             if (!_isLoading && _outfits.isEmpty)
               Expanded(
                 child: Center(
                   child: Text(
-                    'Upload one or more photos to see outfit suggestions.',
+                    'Upload some photos to see outfit suggestions!',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey[600], fontSize: 16),
                   ),

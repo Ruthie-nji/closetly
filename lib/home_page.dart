@@ -2,10 +2,16 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Firebase authentication utilities
 
-// Import the AI recommendations page
+// Import the AI-powered outfit recommendation screen
 import 'outfit_recommendations_page.dart';
 
+/// The main screen for the "Closetly Wardrobe" feature.
+///
+/// Displays the user's clothing items in a Pinterest-style grid,
+/// allows adding new items via gallery, searching and filtering,
+/// and provides quick access to sign-out and AI outfit recommendations.
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -14,9 +20,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // A list to hold clothing items; each item has a local File and a category tag.
   final List<Map<String, dynamic>> _clothes = [];
+
+  // Controller for the search TextField
   final TextEditingController _searchController = TextEditingController();
+
+  // Tracks the currently selected category for filtering
   String _selectedCategory = 'All';
+
+  // Predefined categories for clothing items
   final List<String> _categories = [
     'All',
     'Tops',
@@ -25,6 +38,8 @@ class _HomePageState extends State<HomePage> {
     'Accessories',
   ];
 
+  /// Opens the gallery to let the user pick an image.
+  /// On selection, adds the picked image to our local list with a default category.
   Future<void> _addClothingItem() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
@@ -32,14 +47,23 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _clothes.add({
           'file': File(picked.path),
-          'category': 'Tops', // default category
+          'category':
+              'Tops', // TODO: Prompt user to select actual category on add
         });
       });
     }
   }
 
+  /// Signs the current user out via FirebaseAuth and
+  /// navigates back to the login screen, clearing navigation history.
+  Future<void> _signOut(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Apply category and text search filters to the clothing list
     final filtered =
         _clothes.where((item) {
           final matchesCategory =
@@ -52,8 +76,10 @@ class _HomePageState extends State<HomePage> {
         }).toList();
 
     return Scaffold(
+      // Transparent background to let gradient shine through
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
+
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -67,27 +93,37 @@ class _HomePageState extends State<HomePage> {
         ),
         centerTitle: true,
         actions: [
+          // Logout button
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Log out',
+            onPressed: () => _signOut(context),
+            color: Colors.white,
+          ),
+          // Add new clothing item button
           IconButton(
             icon: const Icon(Icons.add_a_photo_rounded),
             onPressed: _addClothingItem,
             color: Colors.white,
           ),
+          // Navigate to AI outfit recommendations
           IconButton(
             icon: const Icon(Icons.checkroom_rounded),
             onPressed: () {
-              // Navigate to AI Outfit Recommendations
-              final wardrobePaths =
-                  _clothes.map((c) => (c['file'] as File).path).toList();
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => OutfitRecommendationsPage()),
+                MaterialPageRoute(
+                  builder: (_) => const OutfitRecommendationsPage(),
+                ),
               );
             },
             color: Colors.white,
           ),
         ],
       ),
+
       body: Container(
+        // Background gradient for a soft, stylish look
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFECE2C6), Color(0xFF8A9A5B)],
@@ -99,7 +135,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             const SizedBox(height: kToolbarHeight + 24),
 
-            // Search bar
+            // Search bar for quick filtering
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: TextField(
@@ -119,7 +155,7 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 16),
 
-            // Category chips
+            // Category selection chips
             SizedBox(
               height: 40,
               child: ListView(
@@ -156,7 +192,7 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 12),
 
-            // Pinterest-style grid
+            // Main grid displaying clothing items
             Expanded(
               child: GridView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -170,7 +206,7 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (_, i) {
                   return GestureDetector(
                     onTap: () {
-                      /* TODO: view full-size */
+                      // TODO: Show full-size preview or details overlay
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -195,6 +231,8 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
+
+      // Floating button for quickly adding new items
       floatingActionButton: FloatingActionButton(
         onPressed: _addClothingItem,
         backgroundColor: const Color(0xFFFFB3C1),

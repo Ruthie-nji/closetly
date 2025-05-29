@@ -1,6 +1,7 @@
 # closetly
 
 A new Flutter project.
+This application currently runs on local host to run this application flutter run -d chrome in the terminal 
 
 ## Getting Started
 
